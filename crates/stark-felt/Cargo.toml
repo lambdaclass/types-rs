@@ -20,8 +20,6 @@ default = ["std", "serde"]
 std = []
 alloc = ["serde?/alloc"]
 
-[dev-dependencies]
-serde_test = "1.0.1"
-
 [target.'cfg(not(all(target_arch = "thumbv6m-none-eabi", target_os = "unknown")))'.dev-dependencies]
 proptest = "1.2.0"
+serde_test = "1.0.1"
