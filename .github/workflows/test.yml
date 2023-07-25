@@ -49,4 +49,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --package stark-felt --target thumbv6m-none-eabi --no-default-features
+          args: --package stark-felt --target thumbv6m-none-eabi --no-default-features -Z features=dev_dep 
