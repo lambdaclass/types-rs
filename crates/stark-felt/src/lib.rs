@@ -565,6 +565,9 @@ mod errors {
 }
 
 #[cfg(test)]
+extern crate std;
+
+#[cfg(test)]
 mod test {
     use core::ops::Shl;
 
