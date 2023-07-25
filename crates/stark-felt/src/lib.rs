@@ -573,7 +573,7 @@ mod test {
     use super::*;
 
     //use proptest::prelude::*;
-    //use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
+    use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
     // proptest! {
     //     #[test]
@@ -878,188 +878,188 @@ mod test {
         assert_eq!(Felt::MAX.pow(9), Felt::MAX);
     }
 
-    // #[test]
-    // fn deserialize() {
-    //     assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
-    //     assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
-    //     assert_de_tokens(&Felt::THREE, &[Token::String("0x3")]);
-    //     assert_de_tokens(
-    //         &Felt::MAX,
-    //         &[Token::String(
-    //             "0x800000000000011000000000000000000000000000000000000000000000000",
-    //         )],
-    //     );
-    // }
+    #[test]
+    fn deserialize() {
+        assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
+        assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
+        assert_de_tokens(&Felt::THREE, &[Token::String("0x3")]);
+        assert_de_tokens(
+            &Felt::MAX,
+            &[Token::String(
+                "0x800000000000011000000000000000000000000000000000000000000000000",
+            )],
+        );
+    }
 
-    // #[test]
-    // fn serialize() {
-    //     assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
-    //     assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
-    //     assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
-    //     assert_ser_tokens(
-    //         &Felt::MAX.readable(),
-    //         &[Token::String(
-    //             "0x800000000000011000000000000000000000000000000000000000000000000",
-    //         )],
-    //     );
+    #[test]
+    fn serialize() {
+        assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
+        assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
+        assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
+        assert_ser_tokens(
+            &Felt::MAX.readable(),
+            &[Token::String(
+                "0x800000000000011000000000000000000000000000000000000000000000000",
+            )],
+        );
 
-    //     assert_ser_tokens(
-    //         &Felt::ZERO.compact(),
-    //         &[
-    //             Token::Seq { len: Some(32) },
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::SeqEnd,
-    //         ],
-    //     );
-    //     assert_ser_tokens(
-    //         &Felt::TWO.compact(),
-    //         &[
-    //             Token::Seq { len: Some(32) },
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(2),
-    //             Token::SeqEnd,
-    //         ],
-    //     );
-    //     assert_ser_tokens(
-    //         &Felt::THREE.compact(),
-    //         &[
-    //             Token::Seq { len: Some(32) },
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(3),
-    //             Token::SeqEnd,
-    //         ],
-    //     );
-    //     assert_ser_tokens(
-    //         &Felt::MAX.compact(),
-    //         &[
-    //             Token::Seq { len: Some(32) },
-    //             Token::U8(8),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(17),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::U8(0),
-    //             Token::SeqEnd,
-    //         ],
-    //     );
-    // }
+        assert_ser_tokens(
+            &Felt::ZERO.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::TWO.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(2),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::THREE.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(3),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::MAX.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(8),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(17),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
+        );
+    }
 
     #[test]
     fn display_lower_hex() {
