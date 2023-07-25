@@ -1,4 +1,5 @@
-#![cfg_attr(not(any(feature = "std", test)), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
+#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 
 use bitvec::array::BitArray;
 
