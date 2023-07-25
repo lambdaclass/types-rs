@@ -1,9 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
 
 use bitvec::array::BitArray;
 
 #[cfg(test)]
+#[cfg(not(all(target_arch = "thumbv6m-none-eabi", target_os = "unknown")))]
 mod arbitrary;
 
 #[cfg(target_pointer_width = "64")]
@@ -569,6 +569,7 @@ mod errors {
 extern crate std;
 
 #[cfg(test)]
+#[cfg(not(all(target_arch = "thumbv6m-none-eabi", target_os = "unknown")))]
 mod test {
     use core::ops::Shl;
 
