@@ -255,7 +255,9 @@ impl Felt {
 #[cfg(feature = "arbitrary")]
 impl<'a> Arbitrary<'a> for Felt {
     fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
-        let hex_chars = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
+        let hex_chars = [
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f",
+        ];
         let mut hex_string = String::new();
         for _ in 0..63 {
             hex_string.push_str(u.choose(&hex_chars)?);
