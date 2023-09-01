@@ -363,7 +363,7 @@ impl From<i64> for Felt {
         if value.is_negative() {
             Self::ZERO
                 - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u64
+                    value.unsigned_abs()
                 )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
@@ -376,7 +376,7 @@ impl From<i128> for Felt {
         if value.is_negative() {
             Self::ZERO
                 - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u128
+                    value.unsigned_abs()
                 )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
