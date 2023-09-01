@@ -1,11 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use core::ops::{Add, Neg};
-
 use bitvec::array::BitArray;
 
 #[cfg(test)]
-mod arbitrary;
+mod arbitrary_proptest;
 
 #[cfg(target_pointer_width = "64")]
 pub type BitArrayStore = [u64; 4];
@@ -28,8 +26,11 @@ use lambdaworks_math::{
     unsigned_integer::element::UnsignedInteger,
 };
 
+#[cfg(feature = "arbitrary")]
+use arbitrary::{self, Arbitrary, Unstructured};
+
 /// Definition of the Field Element type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Felt(FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
@@ -143,11 +144,6 @@ impl Felt {
         ))
     }
 
-    pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
-        let (q, r) = self.0.representative().div_rem(&rhs.0.representative());
-        (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
-    }
-
     /// Multiplicative inverse.
     pub fn inverse(&self) -> Option<Self> {
         Some(Self(self.0.inv()))
@@ -169,83 +165,26 @@ impl Felt {
         Self(self.0.pow(exponent))
     }
 
-    pub fn pow_felt(&self, exponent: &Felt) -> Self {
-        Self(self.0.pow(exponent.0.representative()))
-    }
-
-    /// Modular multiplication.
-    pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
-        Self(FieldElement::from(
-            &(self.0 * rhs.0)
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
-        ))
-    }
-
-    /// Modular multiplicative inverse.
-    pub fn inverse_mod(&self, p: &Self) -> Self {
-        Self(FieldElement::from(
-            &self
-                .0
-                .inv()
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
-        ))
-    }
-
+    /// Performs self modulo n, with n being smaller that the stark field prime.
     pub fn mod_floor(&self, n: &Self) -> Self {
         Self(FieldElement::from(
             &(self.0).representative().div_rem(&n.0.representative()).1,
         ))
     }
+}
 
-    pub fn to_u32(&self) -> Option<u32> {
-        self.to_u64().and_then(|n| n.try_into().ok())
-    }
-
-    pub fn to_u64(&self) -> Option<u64> {
-        match self.0.representative().limbs {
-            [0, 0, 0, val] => Some(val),
-            _ => None,
+#[cfg(feature = "arbitrary")]
+impl<'a> Arbitrary<'a> for Felt {
+    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+        let hex_chars = [
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f",
+        ];
+        let mut hex_string = String::new();
+        for _ in 0..63 {
+            hex_string.push_str(u.choose(&hex_chars)?);
         }
-    }
-
-    pub fn to_usize(&self) -> Option<usize> {
-        self.to_u64()?.try_into().ok()
-    }
-
-    pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
-        FieldElement::from_hex(hex_string)
-            .map(Self)
-            .map_err(|_| FromStrError)
-    }
-
-    pub fn from_dec_str(dec_string: &str) -> Result<Self, FromStrError> {
-        if dec_string.starts_with('-') {
-            UnsignedInteger::from_dec_str(dec_string.strip_prefix('-').unwrap())
-                .map(|x| Self(FieldElement::from(&x)).neg())
-                .map_err(|_| FromStrError)
-        } else {
-            UnsignedInteger::from_dec_str(dec_string)
-                .map(|x| Self(FieldElement::from(&x)))
-                .map_err(|_| FromStrError)
-        }
-    }
-
-    pub fn to_le_digits(&self) -> [u64; 4] {
-        let mut limbs = self.0.representative().limbs;
-        limbs.reverse();
-        limbs
-    }
-
-    pub fn to_be_digits(&self) -> [u64; 4] {
-        self.0.representative().limbs
-    }
-
-    pub fn bits(&self) -> u32 {
-        self.0.representative().bits_le() as u32
+        let felt = FieldElement::<Stark252PrimeField>::from_hex_unchecked(&hex_string);
+        Ok(Felt(felt))
     }
 }
 
@@ -304,117 +243,8 @@ impl TryFrom<&Felt> for NonZeroFelt {
     }
 }
 
-impl From<usize> for Felt {
-    fn from(value: usize) -> Self {
-        Self::from(value as u64)
-    }
-}
-
-impl From<u8> for Felt {
-    fn from(value: u8) -> Self {
-        Self::from(value as u64)
-    }
-}
-
-impl From<u32> for Felt {
-    fn from(value: u32) -> Self {
-        Self::from(value as u64)
-    }
-}
-
-impl From<u64> for Felt {
-    fn from(value: u64) -> Self {
-        Self(FieldElement::from(value))
-    }
-}
-
-impl From<u128> for Felt {
-    fn from(value: u128) -> Self {
-        Self(FieldElement::from(&UnsignedInteger::from(value)))
-    }
-}
-
-impl From<i32> for Felt {
-    fn from(value: i32) -> Self {
-        Self::from(value as i64)
-    }
-}
-
-impl From<i64> for Felt {
-    fn from(value: i64) -> Self {
-        if value.is_negative() {
-            Self::ZERO
-                - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u64
-                )))
-        } else {
-            Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
-        }
-    }
-}
-
-impl From<i128> for Felt {
-    fn from(value: i128) -> Self {
-        if value.is_negative() {
-            Self::ZERO
-                - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u128
-                )))
-        } else {
-            Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
-        }
-    }
-}
-
-impl Add<&Felt> for u64 {
-    type Output = Option<u64>;
-
-    fn add(self, rhs: &Felt) -> Option<u64> {
-        const PRIME_DIGITS_BE_HI: [u64; 3] =
-            [0x0800000000000011, 0x0000000000000000, 0x0000000000000000];
-        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: [u64; 3] =
-            [0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff];
-
-        // Match with the 64 bits digits in big-endian order to
-        // characterize how the sum will behave.
-        match rhs.to_be_digits() {
-            // All digits are `0`, so the sum is simply `self`.
-            [0, 0, 0, 0] => Some(self),
-            // A single digit means this is effectively the sum of two `u64` numbers.
-            [0, 0, 0, low] => self.checked_add(low),
-            // Now we need to compare the 3 most significant digits.
-            // There are two relevant cases from now on, either `rhs` behaves like a
-            // substraction of a `u64` or the result of the sum falls out of range.
-
-            // The 3 MSB only match the prime for Felt::max_value(), which is -1
-            // in the signed field, so this is equivalent to substracting 1 to `self`.
-            [hi @ .., _] if hi == PRIME_DIGITS_BE_HI => self.checked_sub(1),
-
-            // For the remaining values between `[-u64::MAX..0]` (where `{0, -1}` have
-            // already been covered) the MSB matches that of `PRIME - u64::MAX`.
-            // Because we're in the negative number case, we count down. Because `0`
-            // and `-1` correspond to different MSBs, `0` and `1` in the LSB are less
-            // than `-u64::MAX`, the smallest value we can add to (read, substract its
-            // magnitude from) a `u64` number, meaning we exclude them from the valid
-            // case.
-            // For the remaining range, we take the absolute value module-2 while
-            // correcting by substracting `1` (note we actually substract `2` because
-            // the absolute value itself requires substracting `1`.
-            [hi @ .., low] if hi == PRIME_MINUS_U64_MAX_DIGITS_BE_HI && low >= 2 => {
-                (self).checked_sub(u64::MAX - (low - 2))
-            }
-            // Any other case will result in an addition that is out of bounds, so
-            // the addition fails, returning `None`.
-            _ => None,
-        }
-    }
-}
-
 mod arithmetic {
-    use core::{
-        iter,
-        ops::{self, Neg},
-    };
+    use core::{iter, ops};
 
     use super::*;
 
@@ -468,42 +298,6 @@ mod arithmetic {
         }
     }
 
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<u64> for Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: u64) -> Self::Output {
-            self + Felt::from(rhs)
-        }
-    }
-
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<u64> for &Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: u64) -> Self::Output {
-            self + Felt::from(rhs)
-        }
-    }
-
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<usize> for Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: usize) -> Self::Output {
-            self + rhs as u64
-        }
-    }
-
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<usize> for &Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: usize) -> Self::Output {
-            self + rhs as u64
-        }
-    }
-
     /// Field subtraction. Never overflows/underflows.
     impl ops::SubAssign<Felt> for Felt {
         fn sub_assign(&mut self, rhs: Felt) {
@@ -551,56 +345,6 @@ mod arithmetic {
 
         fn sub(self, rhs: &Felt) -> Self::Output {
             Felt(self.0 - rhs.0)
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    #[allow(clippy::suspicious_arithmetic_impl)]
-    impl ops::Sub<Felt> for u64 {
-        type Output = Felt;
-        fn sub(self, rhs: Felt) -> Self::Output {
-            rhs.neg() + self
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    #[allow(clippy::suspicious_arithmetic_impl)]
-    impl ops::Sub<&Felt> for u64 {
-        type Output = Felt;
-        fn sub(self, rhs: &Felt) -> Self::Output {
-            rhs.neg() + self
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<Felt> for usize {
-        type Output = Felt;
-        fn sub(self, rhs: Felt) -> Self::Output {
-            self as u64 - rhs
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<&Felt> for usize {
-        type Output = Felt;
-        fn sub(self, rhs: &Felt) -> Self::Output {
-            self as u64 - rhs
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<u64> for Felt {
-        type Output = Felt;
-        fn sub(self, rhs: u64) -> Self::Output {
-            self - Self::from(rhs)
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<u64> for &Felt {
-        type Output = Felt;
-        fn sub(self, rhs: u64) -> Self::Output {
-            self - Felt::from(rhs)
         }
     }
 
@@ -670,150 +414,6 @@ mod arithmetic {
 
         fn neg(self) -> Self::Output {
             Felt(self.0.neg())
-        }
-    }
-
-    impl ops::Shl<usize> for Felt {
-        type Output = Felt;
-        fn shl(self, rhs: usize) -> Self::Output {
-            Self(FieldElement::from(&self.0.representative().shl(rhs)))
-        }
-    }
-
-    impl ops::Shl<usize> for &Felt {
-        type Output = Felt;
-
-        fn shl(self, rhs: usize) -> Self::Output {
-            Felt(FieldElement::from(&self.0.representative().shl(rhs)))
-        }
-    }
-
-    impl ops::Shr<usize> for Felt {
-        type Output = Felt;
-        fn shr(self, rhs: usize) -> Self::Output {
-            Self(FieldElement::from(&self.0.representative().shr(rhs)))
-        }
-    }
-
-    impl ops::Shr<usize> for &Felt {
-        type Output = Felt;
-
-        fn shr(self, rhs: usize) -> Self::Output {
-            Felt(FieldElement::from(&self.0.representative().shr(rhs)))
-        }
-    }
-
-    impl ops::BitAnd<Felt> for Felt {
-        type Output = Felt;
-        fn bitand(self, rhs: Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitand(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitAnd<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitand(self, rhs: Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitand(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitAnd<&Felt> for Felt {
-        type Output = Felt;
-        fn bitand(self, rhs: &Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitand(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitAnd<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitand(self, rhs: &Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitand(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitOr<Felt> for Felt {
-        type Output = Felt;
-        fn bitor(self, rhs: Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitOr<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitor(self, rhs: Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitOr<&Felt> for Felt {
-        type Output = Felt;
-        fn bitor(self, rhs: &Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitOr<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitor(self, rhs: &Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitXor<Felt> for Felt {
-        type Output = Felt;
-        fn bitxor(self, rhs: Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitxor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitXor<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitxor(self, rhs: Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitxor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitXor<&Felt> for Felt {
-        type Output = Felt;
-        fn bitxor(self, rhs: &Felt) -> Self::Output {
-            Self(FieldElement::from(
-                &self.0.representative().bitxor(rhs.0.representative()),
-            ))
-        }
-    }
-
-    impl ops::BitXor<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitxor(self, rhs: &Felt) -> Self::Output {
-            Felt(FieldElement::from(
-                &self.0.representative().bitxor(rhs.0.representative()),
-            ))
         }
     }
 
@@ -986,7 +586,7 @@ mod errors {
 mod test {
     use core::ops::Shl;
 
-    use crate::arbitrary::nonzero_felt;
+    use crate::arbitrary_proptest::nonzero_felt;
 
     use super::*;
 
@@ -1184,18 +784,6 @@ mod test {
         #[test]
         fn multiplying_by_inverse_yields_multiplicative_neutral(x in nonzero_felt()) {
             prop_assert_eq!(x * x.inverse().unwrap(), Felt::ONE )
-        }
-
-        #[test]
-        fn inverse_mod_in_range(x in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.inverse_mod(&p) <= Felt::MAX);
-            prop_assert!(x.inverse_mod(&p) < p);
-        }
-
-        #[test]
-        fn mul_mod_in_range(x in any::<Felt>(), y in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.mul_mod(&y, &p) <= Felt::MAX);
-            prop_assert!(x.mul_mod(&y, &p) < p);
         }
 
         #[test]
