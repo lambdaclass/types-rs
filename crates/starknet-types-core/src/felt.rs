@@ -34,13 +34,13 @@ pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 /// A non-zero [Felt].
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FeltIsZeroError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FromStrError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FromBytesError;
 
 impl Felt {
