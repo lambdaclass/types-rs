@@ -1,8 +1,41 @@
 # starknet-types-core
 
-`starknet-types-core` is a crate focusing on Starknet types related to computation and execution. This crate is part of an initiative to standardize the representation of the `Felt` type in Rust, reducing code complexity and improving performance across the Starknet Rust ecosystem.
+Core types representation for Starknet.
 
-The types in this crate require performance and optimization for specific arithmetic and cryptographic operations, making it ideal for computational tasks within the Starknet ecosystem.
+## Overview
+
+The `starknet-types-core` crate provides:
+* The universal `Felt` (Field Element) type for Cairo and STARK proofs. It was created to reduce the fragmentation in the Starknet Rust ecosystem by providing a standardized representation of the `Felt` type.
+
+## Features
+
+### Always on
+- Standardized `Felt` type: Simplify your codebase by using our standardized `Felt` type. Optimized for performance: The `Felt` type has been optimized for high-performance applications.
+- No_std support ✅
+
+### Serde
+- Provides a Serialization and Deserialization implementations for the `Felt` type
+- No_std support ✅
+
+### Arbitrary
+- Provides an Arbitrary implementations for the `Felt` type
+
+### Curve
+- Add the `AffinePoint` and `ProjectivePoint` structs, which represent points on the Stark curve for performing elliptic curve operations.
+- No_std support ✅
+
+### Hash
+- Implements Pedersen hashing for Felts and Felts array
+
+## Examples
+
+Here are some examples of how to use the `starknet-types-core` types:
+
+```rust
+    let felt = Felt::from(18);
+    let projective_point = ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0));
+    let affine_point = AffinePoint::new(Felt::from(0), Felt::from(1)).unwrap();
+```
 
 ## Usage
 
@@ -10,7 +43,13 @@ Include `starknet-types-core` in your library by adding the following to your `C
 
 ```toml
 [dependencies]
-starknet-types-core = { version = "0.0.2", git = "https://github.com/starknet-io/types-rs" }
+starknet-types-core = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs", default-features = false, features = [
+    "alloc",
+    "serde",
+    "arbitrary",
+    "curve",
+    "hash",
+] }
 ```
 
 ## Build from source
