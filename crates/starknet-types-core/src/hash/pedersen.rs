@@ -6,29 +6,31 @@ use lambdaworks_math::field::{
 
 use super::traits::StarkHash;
 
-pub struct Pedersen;
+#[derive(Default)]
+pub struct Pedersen(PedersenLambdaworks);
 
 impl StarkHash for Pedersen {
     /// Computes the Pedersen hash of two Felts, as defined
     /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.>
-    fn hash(felt_0: &Felt, felt_1: &Felt) -> Felt {
-        let pedersen = PedersenLambdaworks::default();
+    fn hash(&self, felt_0: &Felt, felt_1: &Felt) -> Felt {
+        // let pedersen = PedersenLambdaworks::default();
 
-        let hash = pedersen.hash(&felt_0.0, &felt_1.0);
+        let hash = self.0.hash(&felt_0.0, &felt_1.0);
 
         Felt(hash)
     }
 
     /// Computes the Pedersen hash of an array of Felts, as defined
     /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
-    fn hash_array(felts: &[Felt]) -> Felt {
-        let pedersen = PedersenLambdaworks::default();
+    fn hash_array(&self, felts: &[Felt]) -> Felt {
+        // let pedersen = PedersenLambdaworks::default();
         let data_len = Felt::from(felts.len());
         let current_hash: FieldElement<Stark252PrimeField> = felts.iter().fold(
             FieldElement::<Stark252PrimeField>::zero(),
-            |current_hash, felt| pedersen.hash(&current_hash, &felt.0),
+            // |current_hash, felt| pedersen.hash(&current_hash, &felt.0),
+            |current_hash, felt| self.0.hash(&current_hash, &felt.0),
         );
-        Felt(pedersen.hash(&current_hash, &data_len.0))
+        Felt(self.0.hash(&current_hash, &data_len.0))
     }
 }
 
