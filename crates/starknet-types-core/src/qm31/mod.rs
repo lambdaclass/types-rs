@@ -1,4 +1,9 @@
+mod primitive_conversions;
+mod qm31_num_traits_impl;
+
 use core::fmt;
+
+use num_bigint::{BigInt, BigUint};
 
 use crate::felt::Felt;
 
@@ -43,6 +48,9 @@ impl QM31 {
     /// [QM31] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
+    /// [QM31] constant that's equal to 1.
+    pub const ONE: Self = Self([1, 0, 0, 0]);
+
     pub fn inner(&self) -> [u64; 4] {
         self.0
     }
@@ -59,15 +67,36 @@ impl QM31 {
 
     /// Packs the [QM31] coordinates into a Felt.
     fn pack_into_felt(&self) -> Felt {
-        let coordinates = self.0;
+        let mut felt_bytes = [0; 32];
+        let bytes = self.to_le_bytes();
 
+        felt_bytes[0..18].copy_from_slice(&bytes);
+
+        Felt::from_bytes_le(&felt_bytes)
+    }
+
+    fn to_biguint(&self) -> BigUint {
+        let bytes = self.to_le_bytes();
+
+        BigUint::from_bytes_le(&bytes)
+    }
+
+    fn to_bigint(&self) -> BigInt {
+        self.to_biguint().into()
+    }
+
+    /// Convert `self`'s inner into an array of bytes,
+    /// following the little endian ordering.
+    pub fn to_le_bytes(&self) -> [u8; 18] {
+        let coordinates = self.inner();
+
+        let mut result_bytes = [0u8; 18];
         let bytes_part1 = (coordinates[0] as u128 + ((coordinates[1] as u128) << 36)).to_le_bytes();
         let bytes_part2 = (coordinates[2] as u128 + ((coordinates[3] as u128) << 36)).to_le_bytes();
-        let mut result_bytes = [0u8; 32];
         result_bytes[0..9].copy_from_slice(&bytes_part1[0..9]);
         result_bytes[9..18].copy_from_slice(&bytes_part2[0..9]);
 
-        Felt::from_bytes_le(&result_bytes)
+        result_bytes
     }
 
     /// Computes the addition of two [QM31] elements in reduced form.
@@ -289,6 +318,83 @@ impl TryFrom<&Felt> for QM31 {
     }
 }
 
+/// Defaults to [QM31::ZERO].
+impl Default for QM31 {
+    fn default() -> Self {
+        QM31::ZERO
+    }
+}
+
+mod arithmetic {
+    use core::ops;
+
+    use crate::qm31::QM31;
+
+    impl ops::Add<QM31> for QM31 {
+        type Output = QM31;
+
+        fn add(self, rhs: QM31) -> Self::Output {
+            (&self).add(&rhs)
+        }
+    }
+
+    impl ops::Add<&QM31> for QM31 {
+        type Output = QM31;
+
+        fn add(self, rhs: &QM31) -> Self::Output {
+            (&self).add(rhs)
+        }
+    }
+
+    impl ops::Add<QM31> for &QM31 {
+        type Output = QM31;
+
+        fn add(self, rhs: QM31) -> Self::Output {
+            (&self).add(&rhs)
+        }
+    }
+
+    impl ops::Add<&QM31> for &QM31 {
+        type Output = QM31;
+
+        fn add(self, rhs: &QM31) -> Self::Output {
+            (&self).add(rhs)
+        }
+    }
+
+    impl ops::Mul<QM31> for QM31 {
+        type Output = QM31;
+
+        fn mul(self, rhs: QM31) -> Self::Output {
+            (&self).mul(&rhs)
+        }
+    }
+
+    impl ops::Mul<&QM31> for QM31 {
+        type Output = QM31;
+
+        fn mul(self, rhs: &QM31) -> Self::Output {
+            (&self).mul(rhs)
+        }
+    }
+
+    impl ops::Mul<QM31> for &QM31 {
+        type Output = QM31;
+
+        fn mul(self, rhs: QM31) -> Self::Output {
+            (&self).mul(&rhs)
+        }
+    }
+
+    impl ops::Mul<&QM31> for &QM31 {
+        type Output = QM31;
+
+        fn mul(self, rhs: &QM31) -> Self::Output {
+            (&self).mul(rhs)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use core::u64;
@@ -299,9 +405,9 @@ mod test {
         prop_oneof, proptest,
     };
 
-    use crate::felt::{
+    use crate::{
+        felt::Felt,
         qm31::{QM31Error, QM31, STWO_PRIME},
-        Felt,
     };
 
     #[test]

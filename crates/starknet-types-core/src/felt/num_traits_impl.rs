@@ -139,4 +139,14 @@ mod tests {
     fn default_is_zero() {
         assert!(Felt::default().is_zero());
     }
+
+    #[test]
+    fn felt_to_primitive() {
+        let felt: Felt = Felt::from(0u128);
+        assert_eq!(felt.to_u128().unwrap(), 0u128);
+        let felt = Felt::from(10u128);
+        assert_eq!(felt.to_u128().unwrap(), 10u128);
+        let felt = Felt::from(u128::MAX);
+        assert_eq!(felt.to_u128().unwrap(), u128::MAX);
+    }
 }
