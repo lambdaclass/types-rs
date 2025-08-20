@@ -49,6 +49,20 @@ impl From<u128> for QM31 {
     }
 }
 
+impl From<i128> for QM31 {
+    fn from(value: i128) -> QM31 {
+        let unsigned_128 = u128::from_be_bytes(value.to_be_bytes());
+
+        let qm31 = QM31::from(unsigned_128);
+
+        if value.is_positive() {
+            qm31
+        } else {
+            qm31.neg()
+        }
+    }
+}
+
 macro_rules! try_from_qm31_to_unsigned {
     ($into: ty) => {
         impl TryFrom<QM31> for $into {
@@ -86,7 +100,7 @@ mod tests {
     use crate::qm31::QM31;
 
     #[test]
-    fn test_qm31_to_primitive_to_qm31_valid_values() {
+    fn test_qm31_to_unsigned_values_to_qm31_valid_values() {
         let u8_max = u8::MAX;
         assert_eq!(u8_max, u8::try_from(QM31::from(u8_max)).unwrap());
         let u8_zero: u8 = 0;
@@ -124,8 +138,47 @@ mod tests {
         );
     }
 
+    //  #[test]
+    // fn test_qm31_to_signed_values_to_qm31_valid_values() {
+    //     let i8_max = i8::MAX;
+    //     assert_eq!(i8_max, i8::try_from(QM31::from(i8_max)).unwrap());
+    //     let i8_zero: i8 = 0;
+    //     assert_eq!(i8_zero, i8::try_from(QM31::from(i8_zero)).unwrap());
+
+    //     let i16_max = i16::MAX;
+    //     assert_eq!(i16_max, i16::try_from(QM31::from(i16_max)).unwrap());
+    //     let i16_zero: i16 = 0;
+    //     assert_eq!(u16_zero, i16::try_from(QM31::from(i16_zero)).unwrap());
+
+    //     let i32_max = i32::MAX;
+    //     assert_eq!(i32_max, i32::try_from(QM31::from(i32_max)).unwrap());
+    //     let i32_zero: i32 = 0;
+    //     assert_eq!(i32_zero, i32::try_from(QM31::from(i32_zero)).unwrap());
+
+    //     let i64_max = i64::MAX;
+    //     assert_eq!(i64_max, i64::try_from(QM31::from(i64_max)).unwrap());
+    //     let i64_zero: i64 = 0;
+    //     assert_eq!(i64_zero, i64::try_from(QM31::from(i64_zero)).unwrap());
+
+    //     let i128_max = i128::MAX;
+    //     assert_eq!(i128_max, i128::try_from(QM31::from(i128_max)).unwrap());
+    //     let i128_zero: i128 = 0;
+    //     assert_eq!(i128_zero, i128::try_from(QM31::from(i128_zero)).unwrap());
+
+    //     let isize_max_value = isize::MAX;
+    //     assert_eq!(
+    //         isize_max_value,
+    //         isize::try_from(QM31::from(isize_max_value)).unwrap()
+    //     );
+    //     let isize_zero_value: isize = 0;
+    //     assert_eq!(
+    //         isize_zero_value,
+    //         isize::try_from(QM31::from(isize_zero_value)).unwrap()
+    //     );
+    // }
+
     #[test]
-    fn qm31_to_primitive_out_of_bounds() {
+    fn qm31_to_unsigned_values_out_of_bounds() {
         let qm31_u128_max = QM31::from(u128::MAX);
         assert!(u8::try_from(qm31_u128_max).is_err());
         assert!(u16::try_from(qm31_u128_max).is_err());

@@ -254,10 +254,6 @@ impl QM31 {
         let rhs_inv = rhs.inverse()?;
         Ok(self.mul(&rhs_inv))
     }
-
-    pub fn is_zero(&self) -> bool {
-        *self == Self::ZERO
-    }
 }
 
 impl From<&QM31> for Felt {
