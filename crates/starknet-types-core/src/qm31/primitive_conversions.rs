@@ -55,10 +55,13 @@ macro_rules! try_from_qm31_to_unsigned {
             type Error = PrimitiveFromQM31Error;
 
             fn try_from(value: QM31) -> Result<Self, Self::Error> {
-                let bytes = value.to_le_bytes();
+                let bytes = value.to_bytes_be();
 
-                let (bytes_return, bytes_check) = bytes.split_at(core::mem::size_of::<$into>());
+                let (bytes_check, bytes_return) =
+                    bytes.split_at(18 - core::mem::size_of::<$into>());
 
+                // A QM31 follows a big-endian ordering. Since it can be represented with 18 bytes (144 bits), we
+                // need to check that the first size_of::<QM31> - size_of::<$into> bytes are zero.
                 if bytes_check.iter().all(|&b| b == 0) {
                     Ok(<$into>::from_be_bytes(bytes_return.try_into().unwrap()))
                 } else {

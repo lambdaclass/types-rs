@@ -1,5 +1,5 @@
+mod num_traits_impl;
 mod primitive_conversions;
-mod qm31_num_traits_impl;
 
 use core::fmt;
 
@@ -39,7 +39,7 @@ impl fmt::Display for QM31Error {
 }
 
 /// Definition of a Quad M31 in its reduced form. The internal representation
-/// is composed by the coordinates of the QM31, following a little endian ordering.
+/// is composed by the coordinates of the QM31, following a big endian ordering.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31([u64; 4]);
@@ -68,7 +68,7 @@ impl QM31 {
     /// Packs the [QM31] coordinates into a Felt.
     fn pack_into_felt(&self) -> Felt {
         let mut felt_bytes = [0; 32];
-        let bytes = self.to_le_bytes();
+        let bytes = self.to_bytes_le();
 
         felt_bytes[0..18].copy_from_slice(&bytes);
 
@@ -76,9 +76,9 @@ impl QM31 {
     }
 
     fn to_biguint(&self) -> BigUint {
-        let bytes = self.to_le_bytes();
-
-        BigUint::from_bytes_le(&bytes)
+        dbg!(self);
+        let bytes = self.to_bytes_be();
+        BigUint::from_bytes_be(&bytes)
     }
 
     fn to_bigint(&self) -> BigInt {
@@ -86,8 +86,8 @@ impl QM31 {
     }
 
     /// Convert `self`'s inner into an array of bytes,
-    /// following the little endian ordering.
-    pub fn to_le_bytes(&self) -> [u8; 18] {
+    /// following the big endian ordering.
+    pub fn to_bytes_le(&self) -> [u8; 18] {
         let coordinates = self.inner();
 
         let mut result_bytes = [0u8; 18];
@@ -95,6 +95,22 @@ impl QM31 {
         let bytes_part2 = (coordinates[2] as u128 + ((coordinates[3] as u128) << 36)).to_le_bytes();
         result_bytes[0..9].copy_from_slice(&bytes_part1[0..9]);
         result_bytes[9..18].copy_from_slice(&bytes_part2[0..9]);
+
+        result_bytes
+    }
+
+    /// Convert `self`'s inner into an array of bytes,
+    /// following the big endian ordering.
+    pub fn to_bytes_be(&self) -> [u8; 18] {
+        let coordinates = self.inner();
+
+        let mut result_bytes = [0u8; 18];
+        let bytes_part1 =
+            (((coordinates[0] as u128) << 36) + (coordinates[1] as u128)).to_be_bytes();
+        let bytes_part2 =
+            (((coordinates[2] as u128) << 36) + (coordinates[3] as u128)).to_be_bytes();
+        result_bytes[0..9].copy_from_slice(&bytes_part1[7..16]);
+        result_bytes[9..18].copy_from_slice(&bytes_part2[7..16]);
 
         result_bytes
     }

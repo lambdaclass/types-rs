@@ -120,7 +120,7 @@ mod tests {
         assert_eq!(qm31.to_u64().unwrap(), 10u64);
         let qm31 = QM31::from(u64::MAX);
         assert_eq!(qm31.to_u64().unwrap(), u64::MAX);
-        
+
         let qm31 = QM31::from(0u128);
         assert_eq!(qm31.to_u128().unwrap(), 0u128);
         let qm31 = QM31::from(10u128);
