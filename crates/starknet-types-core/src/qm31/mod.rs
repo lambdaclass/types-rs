@@ -76,7 +76,6 @@ impl QM31 {
     }
 
     fn to_biguint(&self) -> BigUint {
-        dbg!(self);
         let bytes = self.to_bytes_be();
         BigUint::from_bytes_be(&bytes)
     }
@@ -131,6 +130,7 @@ impl QM31 {
     /// Computes the negative of a [QM31] element in reduced form.
     pub fn neg(&self) -> QM31 {
         let coordinates = self.inner();
+
         Self::from_coordinates([
             STWO_PRIME - coordinates[0],
             STWO_PRIME - coordinates[1],

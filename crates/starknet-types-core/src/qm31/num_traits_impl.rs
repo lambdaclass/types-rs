@@ -22,8 +22,7 @@ impl ToBigUint for QM31 {
 
 impl FromPrimitive for QM31 {
     fn from_i64(value: i64) -> Option<Self> {
-        todo!();
-        // Some(value.into())
+        Some(value.into())
     }
 
     fn from_u64(value: u64) -> Option<Self> {
@@ -31,8 +30,7 @@ impl FromPrimitive for QM31 {
     }
 
     fn from_i128(value: i128) -> Option<Self> {
-        todo!();
-        // Some(value.into())
+        Some(value.into())
     }
 
     fn from_u128(value: u128) -> Option<Self> {
@@ -124,7 +122,6 @@ mod tests {
         let qm31 = QM31::from(0u128);
         assert_eq!(qm31.to_u128().unwrap(), 0u128);
         let qm31 = QM31::from(10u128);
-        dbg!(qm31);
         assert_eq!(qm31.to_u128().unwrap(), 10u128);
         let qm31 = QM31::from(u128::MAX);
         assert_eq!(qm31.to_u128().unwrap(), u128::MAX);
